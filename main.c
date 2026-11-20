@@ -25,7 +25,7 @@ const unsigned char patternbg1[] = {
 
 // BG用 パターンテーブル アルファベット
 const unsigned char patternbg2[] = {
-0x38,0x44,0x82,0x82,0xfe,0x82,0x82,0x00,0x38,0x44,0x82,0x82,0xfe,0x82,0x82,0x00 /*chara65*/
+ 0x38,0x44,0x82,0x82,0xfe,0x82,0x82,0x00,0x38,0x44,0x82,0x82,0xfe,0x82,0x82,0x00 /*chara65*/
 ,0xf0,0x88,0x88,0xfc,0x82,0x82,0xfc,0x00,0xf0,0x88,0x88,0xfc,0x82,0x82,0xfc,0x00 /*chara66*/
 ,0x7c,0x82,0x80,0x80,0x80,0x82,0x7c,0x00,0x7c,0x82,0x80,0x80,0x80,0x82,0x7c,0x00 /*chara67*/
 ,0xf8,0x84,0x82,0x82,0x82,0x84,0xf8,0x00,0xf8,0x84,0x82,0x82,0x82,0x84,0xf8,0x00 /*chara68*/
@@ -117,10 +117,6 @@ void bg_scroll(unsigned char x, unsigned char y)
 {
     PPUSCROLL = x;   // X座標(0～255)
     PPUSCROLL = y;   // Y座標(0～239)
-    PPUCTRL = 0x08 | 0x80;
-    // bit7(1=NMI有効/0=NMI無効)
-    // bit3(SPオフセット 0x1000番地)
-    // bit0-1(0=画面Aを選択)
 }
 
 // Vブランクを待つ(PPUステータス版)
@@ -156,25 +152,50 @@ unsigned char seccnt=0;
 void NesMain()
 {
     char tempstr[5];
+    char nmi_enable = 1;
 
     ppu_vsync();        // Vブランク待ち
     ppu_pattern_init(); // パターンテーブル初期化
-  // BGパターンテーブル
+    // BGパターンテーブル
     ppu_pattern((unsigned char *)patternbg1,'0','9'-'0'+1);
     ppu_pattern((unsigned char *)patternbg2,'A','Z'-'A'+1);
     ppu_palette((char *)palette,0,1); // BGカラーパレット設定
-    bg_cls();            // BGの初期化
-    bg_printstr(10,14,"V BLANK TEST");
-    ppu_vsync();        // Vブランク待ち
-    bg_scroll(0, 0);     // BGスクロール設定 NMI有効化
-    PPUMASK = (1<<3)+6;  // 表示の有効化(bit3=BG)
     while(1){   // メインループ
-        loopcnt = (loopcnt+1) % 60;
-        if(loopcnt==0)seccnt++;
-        num_to_str(tempstr,(unsigned short)seccnt,3);
-//        ppu_vsync();  // Vブランク待ち(PPUステータス)
-        nmi_vsync();  // Vブランク待ち(NMI)
-        bg_printstr(15,16,tempstr);
-        bg_scroll(0, 0);     // BGスクロール設定
+        PPUMASK = 0; // 表示無効化
+        bg_cls();           // BGの初期化
+        bg_printstr(10,10,"V BLANK TEST");
+        if(nmi_enable){
+            bg_printstr(11,14,"NMI");
+        }else{
+            bg_printstr(11,14,"PPU STATUS");
+        }
+        ppu_vsync();        // Vブランク待ち
+        bg_scroll(0, 0);    // BGスクロール設定
+        PPUCTRL = 0x08 | (0x80 * nmi_enable);
+        // bit7(1=NMI有効/0=NMI無効)
+        // bit3(1=SPオフセット 0x1000番地)
+        // bit0-1(0=画面Aを選択)
+
+        PPUMASK = (1<<3)+6; // 表示有効化(bit3=BG/bit2-1=左端)
+
+        loopcnt = 0; // フレーム数
+        seccnt = 0;  // 秒数
+        while(1){   // メインループ
+            if(loopcnt >= 60){ // 1秒経過
+                loopcnt = 0;
+                seccnt++;
+                if(seccnt >= 100)break; // 100秒経過
+            }
+            num_to_str(tempstr,(unsigned short)seccnt,3);
+            if(nmi_enable){
+                nmi_vsync();  // Vブランク待ち(NMI)
+            }else{
+                ppu_vsync();  // Vブランク待ち(PPUステータス)
+            }
+            bg_printstr(15,16,tempstr);
+            bg_scroll(0, 0);     // BGスクロール設定
+            loopcnt++;    // 1/60秒経過
+        }
+        nmi_enable ^= 1;
     }
 }
