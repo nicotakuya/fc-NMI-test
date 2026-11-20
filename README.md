@@ -17,3 +17,6 @@ NMIが発生すると、チック時間カウンタを1つ加算します。メ�
 ・main.c：メインプログラムです。
 
 ・build.bat：CC65でビルドするバッチファイルです。
+
+## Movie
+https://youtu.be/KFO3MBrEwLs
