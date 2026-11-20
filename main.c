@@ -155,6 +155,7 @@ void NesMain()
     char nmi_enable = 1;
 
     ppu_vsync();        // Vブランク待ち
+    PPUMASK = 0; // 表示無効化
     ppu_pattern_init(); // パターンテーブル初期化
     // BGパターンテーブル
     ppu_pattern((unsigned char *)patternbg1,'0','9'-'0'+1);
