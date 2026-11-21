@@ -1,5 +1,5 @@
 # NMI(Non Maskable Interrupt) test for FC
-<img width="514" height="500" alt="nmi_test" src="https://github.com/user-attachments/assets/2deaa3d4-38fc-4c87-954c-acf96abb8c35" />
+<img width="781" height="450" alt="vblank" src="https://github.com/user-attachments/assets/676858a3-ee15-4a21-9c2d-b0c43d50dd58" />
 
 NMI（ノン・マスカブル割り込み）の実験をするファミコン用プログラムです。
 
